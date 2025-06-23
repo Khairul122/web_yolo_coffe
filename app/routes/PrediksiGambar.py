@@ -63,8 +63,13 @@ class ImagePredictor:
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-model_path = os.path.join('app', 'static', 'model_coffe.pt')
-predictor = ImagePredictor(model_path)
+model_path = os.path.join('app', 'static', 'model', 'model_coffe.pt')
+if not os.path.exists(model_path):
+    print(f"Warning: Model file not found at {model_path}")
+    print("Please ensure model_coffe.pt is placed in app/static/model/ directory")
+    predictor = None
+else:
+    predictor = ImagePredictor(model_path)
 
 @upload_bp.route('/')
 def index():
@@ -72,6 +77,9 @@ def index():
 
 @upload_bp.route('/predict', methods=['POST'])
 def predict():
+    if predictor is None:
+        return jsonify({'error': 'Model not loaded. Please check model file.'}), 500
+        
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
     

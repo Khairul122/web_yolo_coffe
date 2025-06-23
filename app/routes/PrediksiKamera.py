@@ -8,113 +8,128 @@ import os
 
 prediksi_bp = Blueprint('prediksi', __name__, url_prefix='/prediksi')
 
-class CameraManager:
-    def __init__(self):
-        self.camera = None
-        self.is_running = False
-        self.frame = None
-        self.lock = threading.Lock()
-        
-    def start_camera(self):
-        if not self.is_running:
-            self.camera = cv2.VideoCapture(0)
-            self.is_running = True
-            threading.Thread(target=self.capture_frames, daemon=True).start()
-    
-    def stop_camera(self):
-        self.is_running = False
-        if self.camera:
-            self.camera.release()
-            self.camera = None
-    
-    def capture_frames(self):
-        while self.is_running and self.camera:
-            ret, frame = self.camera.read()
-            if ret:
-                with self.lock:
-                    self.frame = frame
-            time.sleep(0.03)
-    
-    def get_frame(self):
-        with self.lock:
-            return self.frame.copy() if self.frame is not None else None
+model = None
+camera = None
+camera_running = False
+current_frame = None
+processed_frame = None
+current_info = None
+lock = threading.Lock()
 
-class YOLODetector:
-    def __init__(self, model_path):
-        self.model = YOLO(model_path)
-        self.current_info = None
-        self.last_detection = None
+def load_model():
+    global model
+    try:
+        current_file = os.path.abspath(__file__)
+        app_dir = os.path.dirname(os.path.dirname(current_file))
+        model_path = os.path.join(app_dir, 'static', 'model', 'model_coffe.pt')
         
-    def detect(self, frame):
-        if frame is None:
-            return frame, self.current_info
+        if os.path.exists(model_path):
+            model = YOLO(model_path)
+            print(f"Model loaded: {model_path}")
+            return True
+        else:
+            print(f"Model not found: {model_path}")
+            return False
+    except Exception as e:
+        print(f"Error loading model: {e}")
+        return False
+
+def camera_thread():
+    global camera, camera_running, current_frame, processed_frame, current_info
+    
+    camera = cv2.VideoCapture(0)
+    
+    while camera_running:
+        ret, frame = camera.read()
+        if ret:
+            with lock:
+                current_frame = frame.copy()
+                
+            if model:
+                try:
+                    results = model(frame, verbose=False)
+                    for result in results:
+                        boxes = result.boxes
+                        if boxes is not None:
+                            for box in boxes:
+                                confidence = float(box.conf[0])
+                                if confidence > 0.7:
+                                    class_id = int(box.cls[0])
+                                    class_name = model.names[class_id]
+                                    
+                                    x1, y1, x2, y2 = map(int, box.xyxy[0])
+                                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                                    label = f"{class_name}: {confidence:.2f}"
+                                    cv2.putText(frame, label, (x1, y1-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                                    
+                                    info_data = Info.query.filter_by(kategori=class_name).first()
+                                    if info_data:
+                                        current_info = {
+                                            'kategori': info_data.kategori,
+                                            'keterangan': info_data.keterangan,
+                                            'foto': info_data.foto
+                                        }
+                                    break
+                except Exception as e:
+                    print(f"Detection error: {e}")
             
-        results = self.model(frame, verbose=False)
+            with lock:
+                processed_frame = frame.copy()
         
-        for result in results:
-            boxes = result.boxes
-            if boxes is not None:
-                for box in boxes:
-                    confidence = float(box.conf[0])
-                    if confidence > 0.7:
-                        class_id = int(box.cls[0])
-                        class_name = self.model.names[class_id]
-                        
-                        if self.last_detection != class_name:
-                            self.last_detection = class_name
-                            info_data = Info.query.filter_by(kategori=class_name).first()
-                            if info_data:
-                                self.current_info = {
-                                    'kategori': info_data.kategori,
-                                    'keterangan': info_data.keterangan,
-                                    'foto': info_data.foto
-                                }
-                        
-                        x1, y1, x2, y2 = map(int, box.xyxy[0])
-                        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                        label = f"{class_name}: {confidence:.2f}"
-                        cv2.putText(frame, label, (x1, y1-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-                        break
-        
-        return frame, self.current_info
+        time.sleep(0.03)
+    
+    if camera:
+        camera.release()
 
-camera_manager = CameraManager()
-model_path = os.path.join('app', 'static', 'model_coffe.pt')
-yolo_detector = YOLODetector(model_path)
+load_model()
 
 @prediksi_bp.route('/')
 def index():
     return render_template('prediksi_kamera.html')
 
+@prediksi_bp.route('/model_status')
+def model_status():
+    return jsonify({
+        'loaded': model is not None,
+        'status': 'Model loaded successfully' if model else 'Model not loaded',
+        'path': 'app/static/model/model_coffe.pt'
+    })
+
 @prediksi_bp.route('/start_camera', methods=['POST'])
 def start_camera():
-    camera_manager.start_camera()
+    global camera_running
+    if model is None:
+        return jsonify({'error': 'Model not loaded'}), 404
+    
+    if not camera_running:
+        camera_running = True
+        threading.Thread(target=camera_thread, daemon=True).start()
+    
     return jsonify({'status': 'Camera started'})
 
 @prediksi_bp.route('/stop_camera', methods=['POST'])
 def stop_camera():
-    camera_manager.stop_camera()
+    global camera_running
+    camera_running = False
     return jsonify({'status': 'Camera stopped'})
 
 @prediksi_bp.route('/video_feed')
 def video_feed():
     def generate():
-        while camera_manager.is_running:
-            frame = camera_manager.get_frame()
-            if frame is not None:
-                processed_frame, _ = yolo_detector.detect(frame)
-                
-                ret, buffer = cv2.imencode('.jpg', processed_frame)
-                if ret:
-                    frame_bytes = buffer.tobytes()
-                    yield (b'--frame\r\n'
-                           b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+        while camera_running:
+            with lock:
+                if processed_frame is not None:
+                    ret, buffer = cv2.imencode('.jpg', processed_frame)
+                    if ret:
+                        frame_bytes = buffer.tobytes()
+                        yield (b'--frame\r\n'
+                               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
             time.sleep(0.03)
     
     return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @prediksi_bp.route('/get_detection_info')
 def get_detection_info():
-    if yolo_detector.current_info:
-        return jsonify(yolo_detector.current_info)
+    if current_info:
+        return jsonify(current_info)
     return jsonify({})
