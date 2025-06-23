@@ -19,19 +19,14 @@ lock = threading.Lock()
 def load_model():
     global model
     try:
-        current_file = os.path.abspath(__file__)
-        app_dir = os.path.dirname(os.path.dirname(current_file))
-        model_path = os.path.join(app_dir, 'static', 'model', 'model_coffe.pt')
-        
+        model_path = os.path.join('app', 'static', 'model', 'model_coffe.pt')
         if os.path.exists(model_path):
             model = YOLO(model_path)
-            print(f"Model loaded: {model_path}")
             return True
         else:
-            print(f"Model not found: {model_path}")
             return False
     except Exception as e:
-        print(f"Error loading model: {e}")
+        print(f"Error: {e}")
         return False
 
 def camera_thread():
@@ -71,7 +66,7 @@ def camera_thread():
                                         }
                                     break
                 except Exception as e:
-                    print(f"Detection error: {e}")
+                    pass
             
             with lock:
                 processed_frame = frame.copy()
@@ -91,15 +86,14 @@ def index():
 def model_status():
     return jsonify({
         'loaded': model is not None,
-        'status': 'Model loaded successfully' if model else 'Model not loaded',
-        'path': 'app/static/model/model_coffe.pt'
+        'status': 'Model loaded' if model else 'Model not loaded'
     })
 
 @prediksi_bp.route('/start_camera', methods=['POST'])
 def start_camera():
     global camera_running
     if model is None:
-        return jsonify({'error': 'Model not loaded'}), 404
+        return jsonify({'error': 'Model not loaded'}), 400
     
     if not camera_running:
         camera_running = True
