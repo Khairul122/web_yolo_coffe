@@ -1,80 +1,41 @@
-from flask import Blueprint, render_template, Response, jsonify, request
+from flask import Blueprint, render_template, Response, jsonify
 import cv2
 import threading
 from ultralytics import YOLO
-from app.models.InfoModel import Info
 import time
-import os
 
 prediksi_bp = Blueprint('prediksi', __name__, url_prefix='/prediksi')
 
 model = None
-camera = None
 camera_running = False
-current_frame = None
 processed_frame = None
-current_info = None
 lock = threading.Lock()
 
 def load_model():
     global model
     try:
-        model_path = os.path.join('app', 'static', 'model', 'model_coffe.pt')
-        if os.path.exists(model_path):
-            model = YOLO(model_path)
-            return True
-        else:
-            return False
-    except Exception as e:
-        print(f"Error: {e}")
+        model = YOLO('app/static/model/model_coffe.pt')
+        return True
+    except:
         return False
 
 def camera_thread():
-    global camera, camera_running, current_frame, processed_frame, current_info
+    global camera_running, processed_frame
     
-    camera = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(0)
     
     while camera_running:
-        ret, frame = camera.read()
-        if ret:
-            with lock:
-                current_frame = frame.copy()
-                
-            if model:
-                try:
-                    results = model(frame, verbose=False)
-                    for result in results:
-                        boxes = result.boxes
-                        if boxes is not None:
-                            for box in boxes:
-                                confidence = float(box.conf[0])
-                                if confidence > 0.7:
-                                    class_id = int(box.cls[0])
-                                    class_name = model.names[class_id]
-                                    
-                                    x1, y1, x2, y2 = map(int, box.xyxy[0])
-                                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                                    label = f"{class_name}: {confidence:.2f}"
-                                    cv2.putText(frame, label, (x1, y1-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-                                    
-                                    info_data = Info.query.filter_by(kategori=class_name).first()
-                                    if info_data:
-                                        current_info = {
-                                            'kategori': info_data.kategori,
-                                            'keterangan': info_data.keterangan,
-                                            'foto': info_data.foto
-                                        }
-                                    break
-                except Exception as e:
-                    pass
+        ret, frame = cap.read()
+        if ret and model:
+            results = model(frame, verbose=False)
+            annotated_frame = results[0].plot()
             
             with lock:
-                processed_frame = frame.copy()
+                processed_frame = annotated_frame.copy()
         
         time.sleep(0.03)
     
-    if camera:
-        camera.release()
+    cap.release()
 
 load_model()
 
@@ -84,10 +45,7 @@ def index():
 
 @prediksi_bp.route('/model_status')
 def model_status():
-    return jsonify({
-        'loaded': model is not None,
-        'status': 'Model loaded' if model else 'Model not loaded'
-    })
+    return jsonify({'loaded': model is not None})
 
 @prediksi_bp.route('/start_camera', methods=['POST'])
 def start_camera():
@@ -115,15 +73,8 @@ def video_feed():
                 if processed_frame is not None:
                     ret, buffer = cv2.imencode('.jpg', processed_frame)
                     if ret:
-                        frame_bytes = buffer.tobytes()
                         yield (b'--frame\r\n'
-                               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+                               b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
             time.sleep(0.03)
     
     return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-@prediksi_bp.route('/get_detection_info')
-def get_detection_info():
-    if current_info:
-        return jsonify(current_info)
-    return jsonify({})
