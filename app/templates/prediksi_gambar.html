@@ -1,141 +1,146 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prediksi Gambar - Klasifikasi Biji Kopi</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #6B4E3D 0%, #8B5A3C 50%, #A0522D 100%);
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #CD853F 100%);
             min-height: 100vh;
+            color: #333;
         }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        header {
-            background: rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-            padding: 1rem 0;
+
+        .navbar {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px 0;
             position: fixed;
             width: 100%;
             top: 0;
             z-index: 1000;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
         }
-        
-        nav {
+
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 0 20px;
         }
-        
+
         .logo {
-            color: #fff;
+            color: white;
             font-size: 1.5rem;
             font-weight: bold;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        
+
         .nav-links {
             display: flex;
-            list-style: none;
-            gap: 2rem;
+            gap: 30px;
         }
-        
+
         .nav-links a {
-            color: #fff;
+            color: white;
             text-decoration: none;
+            font-weight: 500;
             transition: color 0.3s;
         }
-        
+
         .nav-links a:hover {
-            color: #D2691E;
+            color: #CD853F;
         }
-        
-        .main-content {
-            padding: 100px 0 40px;
-            min-height: 100vh;
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 120px 20px 40px;
         }
-        
-        .upload-header {
+
+        .header {
             text-align: center;
-            color: #fff;
             margin-bottom: 40px;
+            color: white;
         }
-        
-        .upload-header h1 {
+
+        .header h1 {
             font-size: 2.5rem;
-            margin-bottom: 1rem;
+            margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
-        
-        .upload-header p {
+
+        .header p {
             font-size: 1.1rem;
             opacity: 0.9;
         }
-        
-        .upload-section {
-            background: rgba(255, 255, 255, 0.95);
+
+        .upload-card {
+            background: white;
+            border-radius: 20px;
             padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
             margin-bottom: 30px;
         }
-        
+
         .upload-area {
-            border: 3px dashed #D2691E;
+            border: 3px dashed #CD853F;
             border-radius: 15px;
             padding: 60px 20px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
             background: #f8f9fa;
+            position: relative;
         }
-        
+
         .upload-area:hover {
             border-color: #A0522D;
             background: #e9ecef;
+            transform: translateY(-2px);
         }
-        
+
         .upload-area.dragover {
             border-color: #28a745;
             background: rgba(40, 167, 69, 0.1);
         }
-        
+
         .upload-icon {
             font-size: 4rem;
-            color: #D2691E;
+            color: #CD853F;
             margin-bottom: 20px;
         }
-        
+
         .upload-text h3 {
-            color: #6B4E3D;
+            color: #8B4513;
+            font-size: 1.5rem;
             margin-bottom: 10px;
         }
-        
+
         .upload-text p {
             color: #666;
-            margin-bottom: 20px;
+            margin-bottom: 5px;
         }
-        
+
+        .upload-text .format-info {
+            font-size: 0.9rem;
+            color: #999;
+            margin-top: 10px;
+        }
+
         .upload-btn {
-            background: linear-gradient(45deg, #D2691E, #CD853F);
+            background: linear-gradient(45deg, #CD853F, #D2691E);
             color: white;
             padding: 12px 30px;
             border: none;
@@ -143,16 +148,17 @@
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
+            margin-top: 15px;
             display: inline-flex;
             align-items: center;
             gap: 8px;
         }
-        
+
         .upload-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(210, 105, 30, 0.4);
+            box-shadow: 0 5px 15px rgba(205, 133, 63, 0.4);
         }
-        
+
         .selected-file {
             margin-top: 20px;
             padding: 15px;
@@ -160,165 +166,24 @@
             border: 1px solid #28a745;
             border-radius: 10px;
             display: none;
+            text-align: left;
         }
-        
+
         .file-info {
             display: flex;
             align-items: center;
             gap: 10px;
             color: #28a745;
+            font-weight: 500;
         }
-        
-        .results-section {
-            display: none;
-            margin-top: 30px;
-        }
-        
-        .results-header {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
-            border-radius: 15px 15px 0 0;
-            border-bottom: 2px solid #D2691E;
-        }
-        
-        .results-header h2 {
-            color: #6B4E3D;
-            text-align: center;
-        }
-        
-        .results-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr 400px;
-            gap: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
-            border-radius: 0 0 15px 15px;
-        }
-        
-        .image-container {
-            text-align: center;
-        }
-        
-        .image-container h3 {
-            color: #6B4E3D;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-        
-        .image-display {
-            border: 2px solid #D2691E;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #fff;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .image-display img {
-            width: 100%;
-            height: auto;
-            max-height: 400px;
-            object-fit: contain;
-        }
-        
-        .info-panel {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 10px;
-            border: 2px solid #D2691E;
-        }
-        
-        .info-panel h3 {
-            color: #6B4E3D;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .detection-result {
-            display: none;
-        }
-        
-        .detection-result.active {
-            display: block;
-        }
-        
-        .confidence-bar {
-            margin-bottom: 20px;
-        }
-        
-        .confidence-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #6B4E3D;
-        }
-        
-        .progress-bar {
-            width: 100%;
-            height: 10px;
-            background: #e9ecef;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(45deg, #28a745, #20c997);
-            border-radius: 5px;
-            transition: width 0.5s ease;
-        }
-        
-        .category-badge {
-            background: linear-gradient(45deg, #D2691E, #CD853F);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-weight: bold;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-        
-        .info-image {
-            width: 100%;
-            height: 150px;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 15px;
-        }
-        
-        .info-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .description {
-            color: #555;
-            line-height: 1.6;
-            text-align: justify;
-        }
-        
-        .no-detection {
-            text-align: center;
-            color: #666;
-            padding: 40px 20px;
-        }
-        
-        .no-detection i {
-            font-size: 3rem;
-            color: #dc3545;
-            margin-bottom: 15px;
-        }
-        
+
         .action-buttons {
             display: flex;
             gap: 15px;
             justify-content: center;
             margin-top: 30px;
         }
-        
+
         .action-btn {
             padding: 12px 25px;
             border: none;
@@ -329,160 +194,303 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 1rem;
         }
-        
+
         .predict-btn {
             background: linear-gradient(45deg, #007bff, #0056b3);
             color: white;
         }
-        
+
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+        }
+
+        .predict-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         .clear-btn {
             background: linear-gradient(45deg, #6c757d, #495057);
             color: white;
         }
-        
-        .action-btn:hover {
+
+        .clear-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
         }
-        
+
         .loading {
             display: none;
-            text-align: center;
+            background: white;
+            border-radius: 20px;
             padding: 40px;
-            color: #6B4E3D;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
         }
-        
-        .loading i {
+
+        .loading-icon {
             font-size: 3rem;
+            color: #CD853F;
             animation: spin 1s linear infinite;
             margin-bottom: 15px;
         }
-        
+
         @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        @media (max-width: 1200px) {
-            .results-content {
-                grid-template-columns: 1fr;
-                gap: 30px;
+            from {
+                transform: rotate(0deg);
             }
-            
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .results-section {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .results-header h2 {
+            color: #8B4513;
+            font-size: 2rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 350px;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .image-container {
+            text-align: center;
+        }
+
+        .image-container h3 {
+            color: #8B4513;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .image-display {
+            border: 2px solid #CD853F;
+            border-radius: 10px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-display img {
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            object-fit: contain;
+        }
+
+        .info-panel {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #CD853F;
+        }
+
+        .info-panel h3 {
+            color: #8B4513;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .confidence-bar {
+            margin-bottom: 20px;
+        }
+
+        .confidence-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #8B4513;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e9ecef;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #28a745, #20c997);
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+
+        .category-badge {
+            background: linear-gradient(45deg, #CD853F, #D2691E);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .no-detection {
+            text-align: center;
+            color: #666;
+            padding: 30px 20px;
+        }
+
+        .no-detection-icon {
+            font-size: 3rem;
+            color: #dc3545;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 1024px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
             .info-panel {
                 order: -1;
             }
         }
-        
+
         @media (max-width: 768px) {
-            .upload-header h1 {
-                font-size: 2rem;
-            }
-            
             .nav-links {
                 display: none;
             }
-            
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
             .action-buttons {
                 flex-direction: column;
                 align-items: center;
             }
-            
+
             .action-btn {
                 width: 200px;
                 justify-content: center;
             }
+
+            .upload-card {
+                padding: 30px 20px;
+            }
         }
     </style>
 </head>
+
 <body>
-    <header>
-        <nav class="container">
+    <nav class="navbar">
+        <div class="nav-content">
             <div class="logo">
-                <i class="fas fa-coffee"></i>
-                Coffee Classifier
+                ☕ Coffee Classifier
             </div>
-            <ul class="nav-links">
+            <div class="nav-links">
                 <li><a href="{{ url_for('home.index') }}">Home</a></li>
-                <li><a href="#">Upload Gambar</a></li>
-                <li><a href="#about">About</a></li>
-            </ul>
-        </nav>
-    </header>
+                <li><a href="{{ url_for('prediksi.index') }}">Prediksi</a></li>
+                <li><a href="{{ url_for('upload.index') }}">Upload</a></li>
+            </div>
+        </div>
+    </nav>
 
-    <main class="main-content">
-        <div class="container">
-            <div class="upload-header">
-                <h1>Prediksi Gambar Biji Kopi</h1>
-                <p>Upload gambar biji kopi untuk mengetahui tingkat roasting menggunakan YOLO V11</p>
+    <div class="container">
+        <div class="header">
+            <h1>Prediksi Gambar Biji Kopi</h1>
+            <p>Upload gambar biji kopi untuk mengetahui tingkat roasting menggunakan YOLO V11</p>
+        </div>
+
+        <div class="upload-card">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">
+                    ⬆️
+                </div>
+                <div class="upload-text">
+                    <h3>Upload Gambar Biji Kopi</h3>
+                    <p>Klik untuk memilih file atau drag & drop gambar di sini</p>
+                    <p class="format-info">Format: JPG, PNG, JPEG, GIF, BMP (Max: 10MB)</p>
+                </div>
+                <button class="upload-btn" type="button">
+                    📁 Pilih File
+                </button>
             </div>
 
-            <div class="upload-section">
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                    </div>
-                    <div class="upload-text">
-                        <h3>Upload Gambar Biji Kopi</h3>
-                        <p>Klik untuk memilih file atau drag & drop gambar di sini</p>
-                        <p style="font-size: 0.9rem; color: #999;">Format: JPG, PNG, JPEG, GIF, BMP (Max: 10MB)</p>
-                    </div>
-                    <button class="upload-btn" type="button">
-                        <i class="fas fa-folder-open"></i>
-                        Pilih File
-                    </button>
-                </div>
-                
-                <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                
-                <div class="selected-file" id="selectedFile">
-                    <div class="file-info">
-                        <i class="fas fa-check-circle"></i>
-                        <span id="fileName"></span>
-                    </div>
-                </div>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
 
-                <div class="action-buttons">
-                    <button class="action-btn predict-btn" id="predictBtn" disabled>
-                        <i class="fas fa-brain"></i>
-                        Prediksi Gambar
-                    </button>
-                    <button class="action-btn clear-btn" id="clearBtn">
-                        <i class="fas fa-trash"></i>
-                        Bersihkan Hasil
-                    </button>
+            <div class="selected-file" id="selectedFile">
+                <div class="file-info">
+                    ✅ <span id="fileName"></span>
                 </div>
             </div>
 
-            <div class="loading" id="loading">
-                <i class="fas fa-spinner"></i>
-                <h3>Memproses Gambar...</h3>
-                <p>Sedang menganalisis gambar dengan YOLO V11</p>
+            <div class="action-buttons">
+                <button class="action-btn predict-btn" id="predictBtn" disabled>
+                    🧠 Prediksi Gambar
+                </button>
+                <button class="action-btn clear-btn" id="clearBtn">
+                    🗑️ Bersihkan Hasil
+                </button>
             </div>
+        </div>
 
-            <div class="results-section" id="resultsSection">
-                <div class="results-header">
-                    <h2>Hasil Prediksi</h2>
-                </div>
-                <div class="results-content">
-                    <div class="image-container">
-                        <h3>Gambar Asli</h3>
-                        <div class="image-display">
-                            <img id="originalImage" src="" alt="Original Image">
-                        </div>
+        <div class="loading" id="loading">
+            <div class="loading-icon">⚙️</div>
+            <h3>Memproses Gambar...</h3>
+            <p>Sedang menganalisis gambar dengan YOLO V11</p>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <div class="results-header">
+                <h2>Hasil Prediksi</h2>
+            </div>
+            <div class="results-grid">
+                <div class="image-container">
+                    <h3>Gambar Asli</h3>
+                    <div class="image-display">
+                        <img id="originalImage" src="" alt="Original Image">
                     </div>
-                    
-                    <div class="image-container">
-                        <h3>Hasil Prediksi</h3>
-                        <div class="image-display">
-                            <img id="predictedImage" src="" alt="Predicted Image">
-                        </div>
+                </div>
+
+                <div class="image-container">
+                    <h3>Hasil Prediksi</h3>
+                    <div class="image-display">
+                        <img id="predictedImage" src="" alt="Predicted Image">
+                    </div>
+                </div>
+
+                <div class="info-panel" id="infoPanel">
+                    <h3>Informasi Deteksi</h3>
+                    <div class="no-detection">
+                        <div class="no-detection-icon">🔍</div>
+                        <p>Tidak ada deteksi</p>
                     </div>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 
     <script>
         const uploadArea = document.getElementById('uploadArea');
@@ -493,6 +501,7 @@
         const clearBtn = document.getElementById('clearBtn');
         const loading = document.getElementById('loading');
         const resultsSection = document.getElementById('resultsSection');
+        const infoPanel = document.getElementById('infoPanel');
 
         let currentFile = null;
 
@@ -500,7 +509,7 @@
         uploadArea.addEventListener('dragover', handleDragOver);
         uploadArea.addEventListener('dragleave', handleDragLeave);
         uploadArea.addEventListener('drop', handleDrop);
-        
+
         fileInput.addEventListener('change', handleFileSelect);
         predictBtn.addEventListener('click', predictImage);
         clearBtn.addEventListener('click', clearResults);
@@ -518,7 +527,6 @@
         function handleDrop(e) {
             e.preventDefault();
             uploadArea.classList.remove('dragover');
-            
             const files = e.dataTransfer.files;
             if (files.length > 0) {
                 handleFile(files[0]);
@@ -538,11 +546,9 @@
                 fileName.textContent = file.name;
                 selectedFile.style.display = 'block';
                 predictBtn.disabled = false;
-                
+
                 uploadArea.innerHTML = `
-                    <div class="upload-icon">
-                        <i class="fas fa-check-circle" style="color: #28a745;"></i>
-                    </div>
+                    <div class="upload-icon">✅</div>
                     <div class="upload-text">
                         <h3>File Terpilih</h3>
                         <p>${file.name}</p>
@@ -569,81 +575,78 @@
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                loading.style.display = 'none';
-                
-                if (data.error) {
-                    alert('Error: ' + data.error);
-                    return;
-                }
-                
-                displayResults(data);
-            })
-            .catch(error => {
-                loading.style.display = 'none';
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat memproses gambar');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    loading.style.display = 'none';
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                        return;
+                    }
+                    displayResults(data);
+                })
+                .catch(error => {
+                    loading.style.display = 'none';
+                    alert('Terjadi kesalahan saat memproses gambar');
+                });
         }
 
         function displayResults(data) {
             document.getElementById('originalImage').src = `/static/${data.original_image}`;
             document.getElementById('predictedImage').src = `/static/${data.predicted_image}`;
-            
-            const noDetection = document.getElementById('noDetection');
-            const detectionResult = document.getElementById('detectionResult');
-            
+
             if (data.detection_info) {
                 const info = data.detection_info;
-                
-                document.getElementById('confidenceValue').textContent = `${(info.confidence * 100).toFixed(1)}%`;
-                document.getElementById('progressFill').style.width = `${info.confidence * 100}%`;
-                document.getElementById('categoryBadge').textContent = info.kategori;
-                document.getElementById('infoImage').src = `/static/${info.foto}`;
-                document.getElementById('description').textContent = info.keterangan;
-                
-                noDetection.style.display = 'none';
-                detectionResult.classList.add('active');
+                infoPanel.innerHTML = `
+                    <h3>Informasi Deteksi</h3>
+                    <div class="confidence-bar">
+                        <div class="confidence-label">
+                            <span>Confidence Score</span>
+                            <span>${(info.confidence * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${info.confidence * 100}%"></div>
+                        </div>
+                    </div>
+                    <div class="category-badge">${info.kategori}</div>
+                `;
             } else {
-                noDetection.style.display = 'block';
-                detectionResult.classList.remove('active');
+                infoPanel.innerHTML = `
+                    <h3>Informasi Deteksi</h3>
+                    <div class="no-detection">
+                        <div class="no-detection-icon">🔍</div>
+                        <h4>Tidak Ada Deteksi</h4>
+                        <p>Tidak dapat mendeteksi biji kopi pada gambar ini</p>
+                    </div>
+                `;
             }
-            
+
             resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
         }
 
         function clearResults() {
             fetch('/upload/clear_results', {
                 method: 'POST'
             })
-            .then(response => response.json())
-            .then(data => {
-                currentFile = null;
-                fileInput.value = '';
-                selectedFile.style.display = 'none';
-                resultsSection.style.display = 'none';
-                predictBtn.disabled = true;
-                
-                uploadArea.innerHTML = `
-                    <div class="upload-icon">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                    </div>
+                .then(() => {
+                    currentFile = null;
+                    fileInput.value = '';
+                    selectedFile.style.display = 'none';
+                    resultsSection.style.display = 'none';
+                    predictBtn.disabled = true;
+
+                    uploadArea.innerHTML = `
+                    <div class="upload-icon">⬆️</div>
                     <div class="upload-text">
                         <h3>Upload Gambar Biji Kopi</h3>
                         <p>Klik untuk memilih file atau drag & drop gambar di sini</p>
-                        <p style="font-size: 0.9rem; color: #999;">Format: JPG, PNG, JPEG, GIF, BMP (Max: 10MB)</p>
+                        <p class="format-info">Format: JPG, PNG, JPEG, GIF, BMP (Max: 10MB)</p>
                     </div>
-                    <button class="upload-btn" type="button">
-                        <i class="fas fa-folder-open"></i>
-                        Pilih File
-                    </button>
+                    <button class="upload-btn" type="button">📁 Pilih File</button>
                 `;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+                });
         }
     </script>
 </body>
-</html>     
+
+</html>
